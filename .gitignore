@@ -1,0 +1,28 @@
+# Dependencies & build artifacts
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel
+
+# Environment (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# OS & logs
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# IDE (optional local); keep .cursor/skills if you want them shared — uncomment to ignore all Cursor local state
+# .cursor/
