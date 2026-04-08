@@ -1,61 +1,199 @@
-# CivicLink — Project Plan
+# CivicLink — Master Project Plan
 
-## Primary reference (authoritative source)
+This document is the **single orchestration guide** for CivicLink: **data strategy** (PDF), **application architecture** (`web/`), **visual design** (UI/UX Pro Max + `design-system/`), and **how humans and agents execute work** ([Superpowers](https://github.com/obra/superpowers), [Wondel.ai skills](https://github.com/wondelai/skills)).  
 
-**This plan is derived from the research document in this repository. For full context—discovery tables, nuanced tradeoffs, numbered citations, and the complete source bibliography—always treat the following file as the main reference:**
+**Numbered segments 1–13** in [§12 Master implementation roadmap](#12-master-implementation-roadmap-segments-113) are the authoritative build sequence; everything above §12 provides context and constraints.
 
-| Reference | Path |
-|-----------|------|
-| **Main reference (data & APIs)** | `Federal Legislation _ Federal Government Actions (1).pdf` |
-| **Main reference (UI/UX quality)** | [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) — in-repo: `.cursor/skills/ui-ux-pro-max/` (Cursor skill) and `ui-ux-pro-max-skill/` (clone); generated: `design-system/MASTER.md` |
+---
 
-If **data or API** details in this markdown conflict with the PDF, **the PDF wins**. If **visual design** conflicts with committed **`design-system/MASTER.md`** or the **UI/UX Pro Max** workflow, follow the **Design and UI reference** section unless the team overrides for accessibility or brand. Use the PDF for API limits (as of the research date), endpoint specifics, and vendor positioning.
+## Plan at a glance
+
+1. **Truth:** `Federal Legislation _ Federal Government Actions (1).pdf` + live vendor docs define **what** to integrate; this file defines **order** and **architecture**.
+2. **Stack:** Next.js App Router in **`web/`**, server-only Route Handlers for keys, PostgreSQL from Segment 4, Redis/queues in Segment 13.
+3. **Build spine:** **1 → 2 → 3 → 4** (platform, design shell, geo, persistence), then **5–8** (federal, state, voting, events), overlap **10**, then **9**, **11**, continuous **12**, scale **13**.
+4. **Agents:** **Superpowers** = delivery discipline (plans, TDD, debug, review). **UI/UX Pro Max** = visual system. **Wondel** = depth by workstream—**not** all 41 at once; use [§0.3](#03-civiclink-agent-playbook-full-inventory--tiers).
+5. **Non-negotiables for CivicLink:** primary-source links, freshness/disclaimer copy (especially **voting**), WCAG-oriented UX, and **no dark patterns** on civic or election-adjacent flows.
+
+---
+
+## Primary references (authority order)
+
+| Layer | Source | Role |
+|-------|--------|------|
+| **Data, APIs, risks, phased data strategy** | `Federal Legislation _ Federal Government Actions (1).pdf` | **Wins** on coverage, vendors, mitigations, bibliography. |
+| **Visual & interaction design** | [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) + committed **`design-system/MASTER.md`** | **Wins** on palette, type, motion, anti-patterns; override only for legal a11y/brand. |
+| **Agent workflow (planning, TDD, debug, review)** | [obra/superpowers](https://github.com/obra/superpowers) → `.cursor/skills/` + `superpowers/` | Mandatory **process** quality; see [§0.1](#01-superpowers-when-to-use-which-skill). |
+| **Method playbooks (product, UX, craft, systems)** | [wondelai/skills](https://github.com/wondelai/skills) → `.cursor/skills/` + `wondelai-skills/` | **Optional depth** on demand; see [§0.2](#02-wondel-skills-suggested-by-segment). |
+| **Repo agent entrypoint** | **`AGENTS.md`** | Short pointer; full **Tier S/A/B** skill map in **§0.3** below. |
+
+**Conflict rule:** PDF overrides this markdown for **factual API claims**. **`design-system/MASTER.md`** overrides ad-hoc UI taste. **Superpowers** overrides “skip tests / rush.”
+
+---
+
+## 0. Engineering context (what exists in this repo)
+
+| Path | Purpose |
+|------|---------|
+| **`web/`** | **Production app:** Next.js (App Router), TypeScript, Tailwind, ESLint + Prettier. All UI routes and `app/api/*` live here. |
+| **`web/.env.example`** | Documented third-party keys and **what each API returns**; copy to **`web/.env.local`**. |
+| **`.cursor/skills/`** | **56** skill roots with `SKILL.md`: **14 Superpowers** (workflow), **1** UI/UX Pro Max, **41** Wondel (methodology). See [§0.3](#03-civiclink-agent-playbook-full-inventory--tiers). |
+| **`superpowers/`** | Upstream clone; refresh with `git -C superpowers pull` + re-copy `superpowers/skills/*` if not using `/add-plugin superpowers`. |
+| **`wondelai-skills/`** | Upstream clone; refresh similarly; re-copy folders containing `SKILL.md` into `.cursor/skills/`. |
+| **`ui-ux-pro-max-skill/`** | Upstream; `uipro update` or `uipro init --ai cursor` for refreshes. |
+
+**Target architecture (short):**
+
+- **Frontend:** React 19 + Next.js, server components where possible; client components for interactivity; Tailwind; eventually **shadcn/ui** (Segment 2).
+- **Backend (same monolith):** Next **Route Handlers** under `web/app/api/**` — **all third-party API keys server-only**; no secrets in `NEXT_PUBLIC_*` except safe origins.
+- **Data:** PostgreSQL + migrations (Prisma or Drizzle) from Segment 4 onward; Redis deferred to Segment 13 for cache/queues.
+- **Observability:** Sentry (or similar) + structured logs + `/api/health` (Segment 1).
+
+---
+
+### 0.1 Superpowers: when to use which skill
+
+Use **[Superpowers](https://github.com/obra/superpowers)** as **mandatory process**, not optional etiquette.
+
+| Phase | Skill folder (`.cursor/skills/`) | When |
+|-------|-----------------------------------|------|
+| Ideation / scope | `brainstorming` | New major feature, unclear problem, or pivot before any UI mock. |
+| Parallel risky work | `using-git-worktrees` | Large refactors or long-lived branches; isolate from `main`. |
+| After design agreed | `writing-plans` | Produce **bite-sized tasks** with file paths, verification steps (align with §12 decimals). |
+| Execution | `subagent-driven-development` or `executing-plans` | Run the plan with reviews/checkpoints. |
+| Every feature slice | `test-driven-development` | **Red → green → refactor** for domain logic, geocoding normalization, API adapters. |
+| Defects | `systematic-debugging`, `verification-before-completion` | No guessing; reproduce, narrow, prove fix. |
+| Gates | `requesting-code-review` | Before merge; severity-bucket findings. |
+| Close branch | `finishing-a-development-branch` | Tests green, PR/merge hygiene. |
+
+**Entry read:** `.cursor/skills/using-superpowers/SKILL.md` at project kickoff and when onboarding new contributors.
+
+**Cursor marketplace (optional):** `/add-plugin superpowers` for hooks and auto-updates — [Superpowers — Cursor](https://github.com/obra/superpowers#cursor-via-plugin-marketplace).
+
+**Reviewer loop:** After you run **`requesting-code-review`**, use **`receiving-code-review`** when *you* implement fixes so feedback is triaged, traced, and closed cleanly.
+
+---
+
+### 0.2 Wondel skills: suggested by segment
+
+Invoke by folder name in prompts, e.g. *“Apply `ux-heuristics` to this flow.”* Full catalog: [skills.wondel.ai](https://skills.wondel.ai).  
+
+**Prefer the curated Tier B/C lists in [§0.3](#03-civiclink-agent-playbook-full-inventory--tiers)** over raw exploration—Wondel includes strong **sales and growth** skills that are **out of scope** for core engineering unless you are explicitly doing GTM.
+
+| Segment | Suggested Wondel skills |
+|---------|-------------------------|
+| **1** | `pragmatic-programmer`, `release-it` |
+| **2** | `refactoring-ui`, `ux-heuristics`, `design-everyday-things`, `web-typography`, `microinteractions`, `lean-ux`, `top-design` (landing only) |
+| **3** | `domain-driven-design`, `software-design-philosophy` |
+| **4** | `clean-architecture`, `domain-driven-design`, `ddia-systems`, `system-design`, `release-it` |
+| **5–8** | `inspired-product`, `continuous-discovery`, `jobs-to-be-done`, `mom-test`; `clean-code`, `refactoring-patterns` |
+| **8** (events) | `cro-methodology` (ethical signup only), `hooked-ux` / `contagious` only under [§0.3 ethics](#03-civiclink-agent-playbook-full-inventory--tiers) |
+| **9** | `lean-startup`, `design-sprint` |
+| **10** | `drive-motivation`, `influence-psychology` **only** with transparent, user-serving patterns |
+| **11** | `made-to-stick`, `storybrand-messaging` (explain sourcing, not hype) |
+| **12** | `high-perf-browser`, `release-it`, `system-design` |
+| **13** | `ddia-systems`, `system-design`, `clean-architecture`, `high-perf-browser` |
+
+---
+
+### 0.3 CivicLink agent playbook (full inventory & tiers)
+
+**Why tiers:** CivicLink is a **high-trust civic product**. The right default is **Superpowers for rigor** + **UI/UX Pro Max for visuals** + **a small Wondel subset per task**. Spraying “marketing optimization” skills onto voting or legislation flows **hurts** credibility.
+
+#### Tier S — Start here (almost every session)
+
+| Skill | Folder | Use |
+|-------|--------|-----|
+| Using Superpowers | `using-superpowers` | Skill selection discipline; read at kickoff. |
+| UI (when touching UI) | `ui-ux-pro-max` | Any layout, component, token, or UX review—after **`design-system/MASTER.md`** exists. |
+
+#### Tier A — Core delivery loop (mandatory for substantive work)
+
+| Skill | Folder | Use |
+|-------|--------|-----|
+| Brainstorming | `brainstorming` | New feature area, unclear IA, or pivot **before** coding. |
+| Writing plans | `writing-plans` | Break §12 decimals into PR-sized tasks with verification steps. |
+| Test-driven development | `test-driven-development` | Adapters: geo, API mappers, normalization, classifiers—**red → green → refactor**. |
+| Executing plans | `executing-plans` | Linear execution when the plan is already written. |
+| Subagent-driven development | `subagent-driven-development` | Parallel UI + API workstreams with review gates. |
+| Systematic debugging | `systematic-debugging` | Any non-trivial defect; no speculative fixes. |
+| Verification before completion | `verification-before-completion` | Before “done”: especially voting/geo **without logging PII**. |
+| Requesting code review | `requesting-code-review` | Pre-merge checklist for author or reviewer. |
+| Receiving code review | `receiving-code-review` | Implementing review feedback systematically. |
+| Finishing a development branch | `finishing-a-development-branch` | Merge-ready hygiene. |
+| Parallel experiments | `using-git-worktrees` | Risky integrations (local pilot, bulk ingest spikes). |
+| Parallel agents / spikes | `dispatching-parallel-agents` | Segment 13 evaluations, multi-API comparison benches. |
+
+#### Tier B — Meta / maintenance (Rare for CivicLink app work)
+
+| Skill | Folder | Use |
+|-------|--------|-----|
+| Writing skills | `writing-skills` | Only when **authoring or stress-testing Cursor skills** in-repo—not for product features. |
+
+#### Wondel — Recommended for CivicLink (high signal)
+
+| Theme | Skills | Notes |
+|-------|--------|------|
+| **Product & problem clarity** | `continuous-discovery`, `inspired-product`, `jobs-to-be-done`, `mom-test`, `lean-ux`, `lean-startup`, `design-sprint` | Use **before** locking scope on Segments 5–9. |
+| **UX & visual craft** | `ux-heuristics`, `design-everyday-things`, `refactoring-ui`, `web-typography`, `microinteractions` | Default stack for civic UI; pairs with UI/UX Pro Max. |
+| **Retention / clarity (not growth hacks)** | `improve-retention` | Friction removal, comprehension, return visits—**not** deceptive patterns. |
+| **Engineering quality** | `clean-code`, `clean-architecture`, `refactoring-patterns`, `domain-driven-design`, `software-design-philosophy`, `pragmatic-programmer`, `release-it` | Segments 3–4, 12–13. |
+| **Distributed systems lens** | `ddia-systems`, `system-design` | Caching, search tier, queues, bulk—Segment 13. |
+| **Browser performance** | `high-perf-browser` | Segment 12+; Core Web Vitals, list virtualization. |
+| **Trust narratives** | `made-to-stick`, `storybrand-messaging` | Explain **why we cite sources** and **coverage limits**—Segment 11, disclaimers. |
+
+#### Wondel — Use sparingly or with guardrails (civic ethics)
+
+| Skill | Folder | Rule |
+|-------|--------|------|
+| Hooked UX | `hooked-ux` | **Audit only:** habit loops must not obscure election dates, polling info, or sources. |
+| Contagious | `contagious` | **No viral dark patterns**; optional for **opt-in** share-after-save with clear labeling. |
+| Influence psychology | `influence-psychology` | **Transparency mandates** (voting disclaimers, data freshness). No manufactured scarcity of civic facts. |
+| CRO methodology | `cro-methodology` | Signup funnels **after** trust copy is true; A/B test **without** misleading claims. |
+| Drive motivation | `drive-motivation` | Onboarding progression **without** manipulative streaks on civic outcomes. |
+
+#### Wondel — Deprioritized until GTM / ops (do not block MVP)
+
+These are valuable for **launch, positioning, or org scaling**—not for core legislative integration:
+
+`blue-ocean-strategy`, `crossing-the-chasm`, `obviously-awesome`, `one-page-marketing`, `predictable-revenue`, `scorecard-marketing`, `traction-eos`, `hundred-million-offers`, `negotiation`, `top-design` (ok for **one** later marketing landing), `ios-hig-design` (**skip** unless you ship a native iOS app).
+
+#### Standard agent session recipe
+
+1. Open **`AGENTS.md`** + **`using-superpowers`** when starting cold.  
+2. **Data question?** → PDF + `web/.env.example`. **UI question?** → `design-system/MASTER.md` + **`ui-ux-pro-max`**.  
+3. **New scope?** → `brainstorming` → **`writing-plans`** mapped to §12 decimals.  
+4. **Implement** → **`test-driven-development`** for anything with branches (geo, mappers, dedupe).  
+5. **Ship** → `requesting-code-review` → fix with `receiving-code-review` → **`finishing-a-development-branch`**.  
+6. **Stuck?** → `systematic-debugging`; **before marking done on sensitive paths** → `verification-before-completion`.
 
 ---
 
 ## Design and UI reference (UI/UX Pro Max)
 
-CivicLink is planned as a **polished, beautiful web app**. The repo includes **[UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)**—design intelligence (styles, palettes, typography, UX guidelines, stack-specific patterns, anti-patterns)—in two places:
+CivicLink is a **trusted civic dashboard**; visual language must feel **official-adjacent, calm, and accessible**.
 
-| Artifact | Path | Role |
-|----------|------|------|
-| **Cursor skill (installed)** | `.cursor/skills/ui-ux-pro-max/` | **`SKILL.md`** is loaded by Cursor; for **any UI/UX work** (layout, components, review, fix), the agent should **follow this skill** so output stays professional and consistent. |
-| **GitHub clone (upstream)** | `ui-ux-pro-max-skill/` | Full upstream repo: `src/`, `cli/`, docs; use for **browsing templates**, comparing versions, or running **`uipro`** (`npm i -g uipro-cli`; `uipro update`) to refresh the Cursor install. |
+| Artifact | Path |
+|----------|------|
+| Cursor skill | `.cursor/skills/ui-ux-pro-max/` |
+| Upstream | `ui-ux-pro-max-skill/` |
 
-**Mandatory UI workflow (do not skip for “beautiful UI”):**
+**Workflow:** Python 3 → run `search.py` with `--design-system --persist -p "CivicLink"` → commit **`design-system/MASTER.md`** and optional **`design-system/pages/*.md`** → implement Tailwind + components to match Master. See prior detailed steps in git history or **`AGENTS.md`** if you need the exact command line.
 
-1. **Python 3.x** must be available on the dev machine (the skill’s design-system CLI is Python). Windows: typically `python`; macOS/Linux: often `python3`.
-2. **Generate a CivicLink-specific design system** (reasoned palette, typography, layout pattern, effects, checklist—**not** generic AI purple gradients). From the **CivicLink repo root**, run—for example:
-
-   ```bash
-   python .cursor/skills/ui-ux-pro-max/scripts/search.py "civic dashboard government transparency neutral trustworthy accessible" --design-system --persist -p "CivicLink" -f markdown
-   ```
-
-   Adjust the query to stress **Next.js**, **Tailwind**, **dashboard**, or **shadcn** if the skill docs support stack flags; align recommendations with the actual stack in §12.
-
-3. **Commit `design-system/`** — After `--persist`, the skill creates **`design-system/MASTER.md`** (global source of truth) and optionally **`design-system/pages/<page>.md`** for per-route overrides. Treat these files as **first-class project artifacts**: review them, commit them, and **point Cursor at them** when implementing screens (“read `design-system/MASTER.md` before building the Federal bills page”).
-
-4. **Build UI against the Master** — Implement Tailwind tokens, fonts, and components to match **MASTER.md**; add page-only deltas in `design-system/pages/` when a view needs exceptions.
-
-5. **Ongoing** — Re-run the design-system command when product positioning changes; use **`uipro update`** periodically so `.cursor/skills/ui-ux-pro-max/` stays current with upstream.
-
-**Conflict rule:** For **data APIs and civic scope**, the **PDF** wins. For **visual design, typography, motion, and UX patterns**, **UI/UX Pro Max + committed `design-system/*.md`** win unless the team explicitly overrides for accessibility or brand.
+**Pairing:** Wondel **`refactoring-ui`** + **`web-typography`** complement UI/UX Pro Max for implementation detail; Master still wins for project-specific tokens.
 
 ---
 
 ## 1. Purpose and product vision
 
-**CivicLink** is envisioned as a neutral, high-impact civic dashboard that combines:
+**CivicLink** is a **neutral civic dashboard**: federal and state legislation, voting helpers, civic events, optional local pilot — anchored on **primary sources** and **clear coverage disclaimers**.
 
-- **Official** legislative and election data (Congress, GPO, state sources, Google Civic).
-- **Civic-tech** aggregators (OpenStates, LegiScan, CDP/Councilmatic patterns).
-- **Modern tooling** (search indexing, NLP summarization, monitoring, optional fact-check context).
-
-The PDF’s **Executive Summary** and **Final Verdict** define the optimal hybrid strategy: phased rollout, free tiers first, then paid and AI depth.
+**Principles from the PDF:** hybrid official + civic-tech data; phased rollout; free first; bulk + search + NLP later; local last.
 
 ---
 
 ## 2. Scope by domain (from PDF)
+
+**Authoritative nuance:** For discovery tables, nuanced tradeoffs, numbered citations in the research doc, rate-limit **as-of-research-date** figures, and the full bibliography — always cross-check **`Federal Legislation _ Federal Government Actions (1).pdf`**. This section mirrors the PDF’s structure so engineers can scan without opening the file; **if anything disagrees, the PDF wins.**
 
 ### 2.1 Federal legislation / federal government actions
 
@@ -198,316 +336,416 @@ The PDF’s **Executive Summary** and **Final Verdict** define the optimal hybri
 
 ---
 
-## 3. Phased delivery (PDF “Phased Stack Recommendations”)
+## 3. Phased delivery (PDF)
 
 ### Phase 1 — MVP
 
 | Area | Stack (per PDF) |
 |------|-----------------|
-| Federal | Congress.gov API + GovInfo bulk |
+| Federal | Congress.gov API + GovInfo bulk posture |
 | State | OpenStates API + LegiScan |
-| Local | Few major city APIs (e.g. NYC Legistar) |
+| Local | Few major city APIs (e.g. Legistar) or defer |
 | Events | Eventbrite + Meetup |
-| Voting | Google Civic Info |
-| Geocoding | Census + Google (as needed) |
-| Trust | Google FactCheck |
+| Voting | Google Civic Info (+ Vote Smart as product requires) |
+| Geocoding | Census + GeoNames (+ Google as needed) |
+| Trust | Google Fact Check optional |
 
-**Reasoning in PDF:** Free tiers, core use cases, avoid high cost early.
+**PDF reasoning:** Free tiers first; core journeys without heavy commercial dependency.
 
 ### Phase 2 — Scaling
 
-- Paid: **BillTrack50** (legislation), **DemocracyWorks** (voting).
-- **VolunteerMatch / All For Good**.
-- Expand local via **CDP** and custom scrapers.
-- **AI summarizers** and **alerts**.
+- Paid or broadened: **BillTrack50** (legislation), **DemocracyWorks** (voting depth).
+- **VolunteerMatch / All For Good** expansion for civic engagement listings.
+- Local via **CDP**, targeted scrapers, more Legistar cities.
+- **AI summarization** and **user alerts** (email/push) once stability proven.
 
 ### Phase 3 — Advanced
 
-- Predictive bill alerts (ML).
-- Deeper context: **MediaCloud / GDELT** sentiment and timelines.
-- Full trust layer: automated fact-check suggestions.
-- Broader localization (major metros).
+- Predictive bill alerts (ML), deeper timelines.
+- **MediaCloud / GDELT**-style context where UX supports it responsibly.
+- Full trust-layer automation **without** replacing official sources.
+- Broader localization for major metros.
 
 ---
 
 ## 4. Cross-cutting technical workstreams
 
-Derived from PDF add-ons and executive summary—plan explicit tasks for each.
-
-1. **ETL / normalization** — Open Civic Data-style models; dedupe across Congress.gov, GovInfo, LegiScan, OpenStates.
-2. **Bulk & scheduled jobs** — GovInfo BillStatus ~4h; LegiScan weekly; RSS diffs; GitHub Actions or cron on servers (PDF examples).
-3. **Search** — Elasticsearch/Solr on bill text + metadata; relevance for “topic” search.
-4. **NLP** — Plain-English summaries of bills/actions; optional diff summaries for amendments.
-5. **Caching** — Redis/CDN for bill text and static legislator data; reduce quota burn.
-6. **Observability** — API uptime, data freshness per source/state/city; failover to alternate source (PDF: LegiScan fallback, scrapers, manual).
-7. **Geospatial** — ZIP/address pipeline; district labels for UI; map components.
-8. **Events pipeline** — Daily pull, dedupe, geocode, civic classifier.
-9. **Compliance & attribution** — LegiScan CC-BY; API terms for Google, Congress.gov, GovInfo, etc. (verify current terms in vendor docs, not only PDF).
-10. **Security & privacy** — Minimize stored PII; secure API keys; transparent sourcing in UI.
+| ID | Workstream | Frontend (`web/`) | Backend / ops |
+|----|------------|-------------------|----------------|
+| A | **ETL & normalization** | — | Shared types in `web/lib/` or `packages/`; single `Bill` / `Event` model. |
+| B | **Caching** | SWR/React Query optional for client | DB + Redis (later); `Cache-Control` for safe GETs. |
+| C | **Search** | Search UI, filters | Postgres full-text → OpenSearch (Segment 13). |
+| D | **Jobs** | — | Cron / queue (Segment 13); MVP use on-demand + DB timestamps. |
+| E | **Observability** | — | Sentry, logs, per-source freshness table. |
+| F | **Compliance** | Attribution UI strings | Store license/terms notes; LegiScan CC-BY. |
+| G | **Security** | CSP, no secrets in client | Rate limit API routes; validate inputs; SSRF guards on URLs. |
 
 ---
 
-## 5. Risks and mitigations (PDF “Biggest Risks”)
+## 5. Risks and mitigations (PDF)
 
 | Risk | Mitigation |
 |------|------------|
-| Local fragmentation | Prioritize populous areas; generic scrapers; user feedback for priority cities; manual/minutes fallback. |
-| Stale or inconsistent updates | Frequent polling; bulk feeds for history; freshness monitoring. |
-| API limits / cost | Aggressive caching; multi-source redundancy; nonprofit discounts; planned paid tier. |
-| Schema heterogeneity | Shared internal models; disciplined ETL; systematic dedupe. |
-| Misinformation | Primary-source links; fact-check where available; clear “unverified” heuristics. |
+| Local fragmentation | Pilot cities; generic scrapers; user voting for next city. |
+| Stale APIs | Freshness badges; bulk fallbacks; alerts on ingest failures. |
+| Quota / cost | Cache; multi-source; paid tier roadmap. |
+| Schema drift | Version adapters; contract tests; `writing-plans` for migrations. |
+| Misinformation | No user rumor core; primary links; fact-check sidebar optional. |
 
 ---
 
-## 6. Product / UX implications (inferred from PDF)
+## 6. Product / UX implications
 
-- **Personalization by location:** Address/ZIP → districts → filter bills, events, voting, local agendas.
-- **Layers:** Federal / state / local tabs or unified feed with jurisdiction tags.
-- **Transparency:** Every card links to official or documented third-party source.
-- **Accessibility & trust copy:** Disclose data lag, coverage gaps (especially local and fact-check sparse areas).
+- **Location-first** shell: every feature reads `JurisdictionContext`.
+- **Jurisdiction labels** on every card (federal vs state vs local).
+- **Empty / loading / error** as first-class; never raw JSON.
+- **Accessibility:** WCAG AA; civic apps skew toward **`ux-heuristics`** + **`design-everyday-things`**.
 
 ---
 
-## 7. Milestone suggestions (planning aid)
+## 7. Milestone map (aligned to segments)
 
-| Milestone | Outcomes |
+| Milestone | Segments |
 |-----------|----------|
-| M0 — Foundations | Repo, secrets management, CI, staging DB, choice of stack (web/mobile) **outside PDF** but required for implementation. |
-| M1 — Geo core | Census + GeoNames path; store normalized jurisdiction IDs for a test user. |
-| M2 — Federal slice | Congress.gov + optional GovInfo text for bookmarked bills; basic UI. |
-| M3 — State slice | OpenStates + LegiScan alignment for 1–3 pilot states. |
-| M4 — Voting slice | Google Civic polling lookup + Vote Smart deadline surfacing. |
-| M5 — Events slice | Eventbrite + Meetup ingestion + civic filter + map list. |
-| M6 — Local pilot | One Legistar city + one open-data portal (PDF cites Austin-style portals). |
-| M7 — Hardening | Monitoring, caching, rate-limit handling, runbooks. |
-| M8 — Phase 2 prep | Evaluate BillTrack50/DemocracyWorks ROI; bulk job scale-up. |
-
-*(Adjust milestones to your actual engineering capacity; PDF does not prescribe sprint length.)*
-
----
-
-## 8. Open decisions (not fully specified in PDF)
-
-These require product/engineering choices beyond the PDF:
-
-- Exact **application stack** (e.g. Next.js, mobile native, etc.).
-- **Auth** (accounts, saved bills, alerts).
-- **Alert channels** (email, push, SMS) and vendor selection.
-- **Legal review** for scraping targets and ToS.
-- **Data retention** policy for user addresses.
+| M0 | **1** complete |
+| M1 Design language | **2** (Master + shell) |
+| M2 Personalization | **3** |
+| M3 Platform | **4** |
+| M4 Federal | **5** |
+| M5 State | **6** |
+| M6 Voting | **7** |
+| M7 Events | **8** |
+| M8 Local pilot | **9** |
+| M9 Accounts | **10** |
+| M10 Trust UX | **11** |
+| M11 Production hardening | **12** |
+| M12 Scale | **13** |
 
 ---
 
-## 9. API keys, accounts, and prerequisites (checklist)
+## 8. Resolved vs open decisions
 
-Use the **PDF** and current vendor documentation for up-to-date steps.
-
-- [ ] Congress.gov / Data.gov API key  
-- [ ] GovInfo API key  
-- [ ] LegiScan API key (30k/mo awareness)  
-- [ ] OpenStates API key  
-- [ ] Google Cloud project (Civic Info, Fact Check Tools, optional Geocoding)  
-- [ ] Eventbrite API key  
-- [ ] Meetup OAuth app  
-- [ ] VolunteerMatch (and optionally All For Good) access  
-- [ ] GeoNames account (if using postal API)  
-- [ ] Per-city Legistar/Granicus keys as you expand local  
-- [ ] Future: BillTrack50, DemocracyWorks (contracting)
-
-**Python:** PDF notes Python 3.x for some legislative tooling in related ecosystems; align with whatever search/summarization scripts you adopt.
+| Decision | Status |
+|----------|--------|
+| Web framework | **Next.js App Router** in `web/` |
+| Package name | App in `web/` (parent folder not npm-valid) |
+| Styling | **Tailwind**; **shadcn/ui** in Segment 2 |
+| API secrets | **Server-only** Route Handlers |
+| Auth | **Open** — NextAuth vs Clerk (Segment 10) |
+| DB host | **Open** — Neon / Supabase / RDS |
+| Email / SMS | **Open** — Segment 10+ |
 
 ---
 
-## 10. Source bibliography (from PDF)
+## 9. API keys checklist
 
-The PDF’s closing section lists official documentation and references (Congress.gov API, GovInfo GitHub, LegiScan, ProPublica bulk, BillTrack50, OpenStates, DemocracyWorks Elections API, Council Data Project, NYC Council API, Apify Municode scraper, Councilmatic, Austin open data, VolunteerMatch, Census Geocoder docs, Google Fact Check API, etc.). **Reproduce and verify URLs from the PDF file** when citing externally; link rot should be checked at implementation time.
+See **`web/.env.example`**. Confirm limits in live docs, not only PDF: Congress.gov, GovInfo, LegiScan, OpenStates, Google Civic & Fact Check, Eventbrite, Meetup, VolunteerMatch, GeoNames; later BillTrack50, DemocracyWorks.
+
+---
+
+## 10. Source bibliography
+
+Reproduce URLs from **`Federal Legislation _ Federal Government Actions (1).pdf`** (end of document); verify before shipping integrations.
 
 ---
 
 ## 11. How to use this document
 
-1. **Product owners** — Use §2–§3 for scope and phasing; §5 for risk register; **§12** for build order; **Design and UI reference** for how the product should look and feel.  
-2. **Engineers** — Use §4, §7, §9, and **§12** for backlogs; confirm all limits and endpoints in the **PDF** + live docs; implement UI against **`design-system/MASTER.md`** and **UI/UX Pro Max** (`.cursor/skills/ui-ux-pro-max/`).  
-3. **Design / frontend** — Follow **Design and UI reference (UI/UX Pro Max)**; regenerate or extend **`design-system/`** when adding major surfaces.  
-4. **Compliance** — Use §9 + PDF for licensing and attribution.  
-5. **Everyone** — For **data and APIs**, the **PDF** is the main reference. For **visual design**, use **UI/UX Pro Max** + committed **`design-system/*.md`**.
+1. **Skim [Plan at a glance](#plan-at-a-glance)** then **[§0.3 agent playbook](#03-civiclink-agent-playbook-full-inventory--tiers)** so each session defaults to **Tier S/A** skills.  
+2. **`AGENTS.md`** — short entry; this file is the full map.  
+3. **PDF** — data/API truth; confirm limits in live vendor docs.  
+4. **§12** — build order (segments 1–13).  
+5. **Superpowers** — plans, TDD, debug, **requesting-code-review** + **receiving-code-review**, merge hygiene.  
+6. **Wondel** — use §0.3 themes; defer sales/GTM skills until explicit launch work.  
+7. **UI/UX Pro Max + `design-system/`** — visual system of record.
 
 ---
 
-## 12. Thorough implementation roadmap (numbered build plan)
+## 12. Master implementation roadmap (segments 1–13)
 
-This section is the **step-by-step engineering plan** for a **single clean web application** (recommended stack: Next.js + TypeScript + Tailwind + PostgreSQL; server-side API routes for all third-party keys). **Main numbers (1, 2, 3, …)** are the major parts being built; **decimal numbers (1.1, 1.2, …)** are concrete work packages inside each part.
+**Convention:** Each segment lists **outcomes**, **`web/` work**, **backend & data**, and **agent tools** (Superpowers + Wondel + UI Pro Max).  
+**Decimals (e.g. 1.1)** are checkable tickets suitable for `writing-plans`.
 
-**Reference hierarchy:** For *what* to integrate (APIs, risks, phased data strategy), use **`Federal Legislation _ Federal Government Actions (1).pdf`** and **§2–§5** above. For *visual design and UX quality*, use **`Design and UI reference (UI/UX Pro Max)`** and committed **`design-system/MASTER.md`**. This **§12** defines *how* to sequence the build.
+### Roadmap dependency order
+
+**1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 10** (overlap 10 late) **→ 9 → 11** (as needed) **→ 12** (continuous) **→ 13**.  
+Repeat **2.11–2.12** per major new route.
 
 ---
 
 ### 1. Foundation and platform
 
-**1.1** Initialize repository: version control, `.gitignore`, README with local run instructions.  
-**1.2** Scaffold web app (e.g. Next.js App Router, TypeScript strict mode).  
-**1.3** Configure linting and formatting (ESLint, Prettier); enforce consistent style in CI or pre-commit.  
-**1.4** Environment variables: `.env.example`, document every key; never expose secrets to the browser.  
-**1.5** Choose hosting targets (e.g. app host + managed PostgreSQL); document deploy pipeline.  
-**1.6** Add health check route (`/api/health` or equivalent) for uptime monitoring.  
-**1.7** Install **Python 3.x** and verify `python` / `python3` runs, for **UI/UX Pro Max** design-system generation (see **Design and UI reference** and **2.1** below).
+**Outcomes:** Clean repo; `web/` runs locally; lint/format/health; Python for design CLI; env template documents all vendors.
+
+| # | Task |
+|---|------|
+| **1.1** | Git, root **`.gitignore`**, **`README.md`** (structure, `cd web`). |
+| **1.2** | Next.js + TS + Tailwind + ESLint in **`web/`**; `npm run build` passes. |
+| **1.3** | Prettier + `eslint-config-prettier`; `format` / `lint` scripts. |
+| **1.4** | **`web/.env.example`** — all planned integration vars + what each API returns (see **PROJECT_PLAN.md** §2); keep updated as vendors change. |
+| **1.5** | Document deploy target (e.g. Vercel + Postgres host) in README. |
+| **1.6** | **`GET /api/health`** returns JSON OK (App Router route). |
+| **1.7** | Python 3 for **UI/UX Pro Max** `search.py` (verify `python .cursor/skills/ui-ux-pro-max/scripts/search.py --help`). |
+
+**Superpowers:** `using-superpowers` (onboard); `writing-plans` for Segment 1 checklist PR.  
+**Wondel:** `pragmatic-programmer`, `release-it` (failure modes early).  
+**UI/UX Pro Max:** —
 
 ---
 
-### 2. Design system and application shell (clean, beautiful UI)
+### 2. Design system and application shell
 
-**2.1** Run **UI/UX Pro Max** `--design-system --persist` for **CivicLink** (query: civic dashboard, government, trustworthy, accessible, Next.js/Tailwind as appropriate); produce **`design-system/MASTER.md`**. Use script path: `.cursor/skills/ui-ux-pro-max/scripts/search.py` (see **Design and UI reference**).  
-**2.2** Translate **MASTER.md** into code: **design tokens** (color, typography, spacing, radii, shadows) via CSS variables and **Tailwind theme** extension—no ad-hoc one-off colors that contradict the Master.  
-**2.3** Adopt a headless component layer (e.g. **shadcn/ui** + Radix) and style it to match the Master; follow **UI/UX Pro Max** anti-patterns checklist (e.g. avoid clichéd “AI” gradients if the design system says so).  
-**2.4** Build global layout: header, main, footer; responsive breakpoints (mobile-first); apply recommended **pattern** (e.g. dashboard vs marketing) from the design-system output.  
-**2.5** Implement navigation to main feature areas: Home, Federal, State, Voting, Events, Local (pilot), Settings/Account (stub).  
-**2.6** Standardize page patterns: page title, description, primary action, content region.  
-**2.7** Build reusable states: **loading** (skeletons), **empty** (helpful copy + next step), **error** (retry + support), **offline/unavailable** (upstream API failure).  
-**2.8** Accessibility baseline: focus visibility, keyboard navigation, semantic headings, sufficient contrast (target WCAG AA)—**Inclusive / Accessible & Ethical**-style guidance from the PDF aligns with civic trust; reinforce with the skill’s UX guidelines.  
-**2.9** Motion: respect `prefers-reduced-motion`; use transition timing from design system (typically 150–300ms).  
-**2.10** Add “Data sources” or “About data” surface: link to official sources; align with PDF emphasis on neutrality and citations.  
-**2.11** For each major route later (Federal list, State list, Voting, Events), optionally run **UI/UX Pro Max** with `--page "<name>"` to create **`design-system/pages/<name>.md`** overrides; implement pages **Master-first**, then page file.  
-**2.12** When implementing any new screen, **invoke Cursor UI/UX work** so the **installed `.cursor/skills/ui-ux-pro-max/` skill** applies; keep **`ui-ux-pro-max-skill/`** clone as reference and run **`uipro update`** when refreshing the skill.
+**Outcomes:** `design-system/MASTER.md` committed; tokens in Tailwind; shell + nav + global empty/loading/error; a11y baseline; “About data” page.
 
----
+| # | Task |
+|---|------|
+| **2.1** | Run UI/UX Pro Max `--design-system --persist` for CivicLink (civic, trustworthy, accessible, Next). |
+| **2.2** | Map Master → CSS variables + `tailwind.config` / v4 theme. |
+| **2.3** | Add **shadcn/ui** (or equivalent) aligned to Master. |
+| **2.4** | Layout: header / main / footer; mobile-first breakpoints. |
+| **2.5** | Routes (stubs OK): Home, Federal, State, Voting, Events, Local, Settings. |
+| **2.6** | Page template: title, description, primary CTA region. |
+| **2.7** | Shared **Empty**, **Loading**, **Error** components. |
+| **2.8** | Focus rings, landmarks, contrast (WCAG AA). |
+| **2.9** | Motion per Master; `prefers-reduced-motion`. |
+| **2.10** | **`/about-data`** or section — list sources, neutrality, PDF pointer. |
+| **2.11** | Optional `--page` overrides under `design-system/pages/`. |
+| **2.12** | Any UI change: load **`.cursor/skills/ui-ux-pro-max/SKILL.md`**. |
 
-### 3. Location and jurisdiction resolution (spine of the product)
+**`web/`:** `app/(marketing)/...`, `app/(dashboard)/...` as appropriate; `components/ui/*`.  
+**Backend:** static routes only.
 
-**3.1** Specify user input: ZIP-first and optional full address; validate US formats.  
-**3.2** Server-only **geocoding pipeline**: e.g. GeoNames or ZIP gazetteer → lat/long + city/state (per PDF §2.6 / MVP stack).  
-**3.3** Integrate **US Census Geocoder** (or equivalent) for congressional & state legislative district context from coordinates.  
-**3.4** Optional cross-check: **Google Civic Information API** for OCD division IDs and elected offices (same PDF section).  
-**3.5** Normalize output into an internal `JurisdictionContext` model (state, districts, display labels, raw codes for APIs).  
-**3.6** Persist “current location” for logged-in users in DB; for anonymous users use secure cookie or session.  
-**3.7** UI: Location panel on home or sticky shell—show resolved jurisdictions; allow change/revert.  
-**3.8** Edge cases: ambiguous ZIP, rural addresses, PO boxes—document behavior and fallback copy.  
-**3.9** Cache geocode results (DB or Redis later) to reduce repeated external calls.
+**Superpowers:** `brainstorming` if IA unclear; `test-driven-development` for a11y-critical utilities (contrast helpers).  
+**Wondel:** `refactoring-ui`, `ux-heuristics`, `design-everyday-things`, `web-typography`, `microinteractions`.  
+**UI/UX Pro Max:** **Primary** for segment.
 
 ---
 
-### 4. Backend architecture, API layer, and data persistence
+### 3. Location and jurisdiction resolution
 
-**4.1** Provision **PostgreSQL**; add migrations (e.g. Prisma, Drizzle, or SQL migrations).  
-**4.2** Implement **server-side only** clients for third-party APIs (no keys in client bundles).  
-**4.3** Define internal DTOs/types for `Bill`, `Legislator`, `Event`, `ElectionInfo`, etc.—UI consumes only normalized shapes.  
-**4.4** Add **caching tables** or columns: `fetched_at`, `payload` or normalized fields, `source` enum, `external_id`.  
-**4.5** Central **error handling** and logging for upstream failures; user-facing safe messages.  
-**4.6** Rate-limit awareness: backoff, combine requests, respect quotas (Congress.gov, LegiScan, etc.—see PDF).  
-**4.7** Optional: background job runner later (Phase 2)—document hook points; MVP may use on-demand fetch + cache.  
-**4.8** API route structure: `/api/...` grouped by domain (`federal`, `state`, `voting`, `events`, `geo`).
+**Outcomes:** `JurisdictionContext` from ZIP/address; persisted per user or cookie; drives API queries in later segments.
+
+| # | Task |
+|---|------|
+| **3.1** | Input: ZIP + optional street; US validation. |
+| **3.2** | Server: GeoNames or ZIP table → lat/lng. |
+| **3.3** | Census Geocoder → congressional + state leg districts. |
+| **3.4** | Optional Google Civic cross-check. |
+| **3.5** | Type `JurisdictionContext` + serialization. |
+| **3.6** | Persistence: DB column or encrypted cookie. |
+| **3.7** | UI: location chip / modal; clear “change location.” |
+| **3.8** | Edge cases documented (PO Box, multi-district ambiguity). |
+| **3.9** | Cache geocode responses (DB table). |
+
+**`web/`:** Location form component; server action or API route `POST /api/geo/resolve`.  
+**Backend:** Normalize all external calls in `web/lib/geo/*`; **no client-side keys**.
+
+**Superpowers:** `test-driven-development` for parsing/normalization; `systematic-debugging` for odd Census responses.  
+**Wondel:** `domain-driven-design`, `software-design-philosophy`.  
+**UI/UX Pro Max:** Follow Master for form layout.
+
+---
+
+### 4. Backend architecture, API layer, and persistence
+
+**Outcomes:** Postgres schema; migrations; domain modules; Route Handler layout; caching primitives.
+
+| # | Task |
+|---|------|
+| **4.1** | Postgres + Prisma or Drizzle; migration workflow. |
+| **4.2** | `lib/http/*` fetch wrappers (timeout, retry, logging). |
+| **4.3** | DTOs: `Bill`, `BillAction`, `Legislator`, `CivicEvent`, `ElectionInfo`. |
+| **4.4** | Cache tables: `external_id`, `source`, `fetched_at`, `payload` or normalized columns. |
+| **4.5** | Global error mapper → safe client JSON. |
+| **4.6** | Rate-limit helper (per route / per IP). |
+| **4.7** | Stub `lib/jobs/*` for future workers. |
+| **4.8** | `app/api/federal/*`, `state/*`, `voting/*`, `events/*`, `geo/*`. |
+
+**`web/`:** Thin route handlers delegating to services.  
+**Backend:** All integration logic server-side.
+
+**Superpowers:** `writing-plans` before large schema PRs; `test-driven-development` for mappers; `requesting-code-review` on migrations.  
+**Wondel:** `clean-architecture`, `domain-driven-design`, `release-it`; `ddia-systems` for read-model planning.  
+**UI/UX Pro Max:** —
 
 ---
 
 ### 5. Federal legislation feature
 
-**5.1** Obtain and configure **Congress.gov API** key; read current official docs (PDF §2.1).  
-**5.2** Implement search/list endpoint: filters (chamber, congress, text query) as supported by API.  
-**5.3** Implement detail endpoint: metadata, summary, sponsors, latest action, committees where available.  
-**5.4** Store/cache responses in DB; expose “last updated” in UI.  
-**5.5** UI: Federal list page with filters + pagination; link each item to detail.  
-**5.6** UI: Detail page with clear **“View on Congress.gov”** (or GovInfo) outbound link.  
-**5.7** (Phase 1.5) Optional: **GovInfo API** integration for full bill text when product requires it (PDF).  
-**5.8** (Fallback) Wire **LegiScan** federal path when needed for redundancy or simpler payloads (PDF).  
-**5.9** Empty states: no results, API limit, or API down—with guidance.
+**Outcomes:** Search/list/detail; Congress.gov as primary; optional GovInfo text; LegiScan fallback; source links.
+
+| # | Task |
+|---|------|
+| **5.1** | Congress.gov client + env wiring. |
+| **5.2** | `GET /api/federal/bills` search. |
+| **5.3** | `GET /api/federal/bills/[id]` detail. |
+| **5.4** | DB cache + `updated_at` surfaced in UI. |
+| **5.5** | Pages: list + filters + pagination. |
+| **5.6** | Detail: sponsors, status, **link to Congress.gov**. |
+| **5.7** | GovInfo optional for full text. |
+| **5.8** | LegiScan fallback path. |
+| **5.9** | Empty/error states using Segment **2** global components **2.7** (Empty / Loading / Error). |
+
+**Superpowers:** `subagent-driven-development` for parallel UI+API tasks; **TDD** for adapters.  
+**Wondel:** `inspired-product`, `continuous-discovery`, `clean-code`, `refactoring-patterns`.  
+**UI/UX Pro Max:** `design-system/pages/federal.md` optional; Master typography for dense tables.
 
 ---
 
 ### 6. State legislation feature
 
-**6.1** Obtain **OpenStates API** key; implement list/search by state derived from `JurisdictionContext`.  
-**6.2** Implement bill detail from OpenStates; map fields to shared `Bill` UI components where possible.  
-**6.3** Add **LegiScan** state parameter as supplement or fallback (PDF MVP stack).  
-**6.4** Pilot rollout: configure **priority states** first (e.g. CA, NY, TX per PDF); then expand.  
-**6.5** UI: State page mirrors Federal patterns; show **state name** and session context.  
-**6.6** Track data freshness per state; surface stale data warnings if last fetch is old.  
-**6.7** Document OpenStates vs LegiScan attribution/licensing in UI where required.
+**Outcomes:** OpenStates-first by `JurisdictionContext.state`; LegiScan supplement; shared bill UI with federal.
+
+| # | Task |
+|---|------|
+| **6.1** | OpenStates client + routes. |
+| **6.2** | Detail normalization to shared DTO. |
+| **6.3** | LegiScan state parameter fallback. |
+| **6.4** | Pilot CA/NY/TX then expand. |
+| **6.5** | State list/detail pages. |
+| **6.6** | Freshness indicator per state. |
+| **6.7** | Attribution strings in UI/footer. |
+
+**Superpowers:** same as 5.  
+**Wondel:** `jobs-to-be-done` (what “job” is user hiring state bills for?), `mom-test` if interviewing users.  
+**UI/UX Pro Max:** dense list readability (line height, truncation).
 
 ---
 
 ### 7. Voting information feature
 
-**7.1** Enable **Google Civic Information API**; implement voter info query by address (from location spine).  
-**7.2** UI: polling place / contests when returned; graceful degradation when Google returns no data.  
-**7.3** Integrate **Vote Smart** (or equivalent) for registration deadlines and supplemental election tools (PDF).  
-**7.4** Prominent **disclaimers**: verify with state/local officials; CivicLink is informational, not official election administration.  
-**7.5** Link out to **Vote.org**, state SOS pages, and NASS-style resources as cited in PDF.  
-**7.6** Optional later: **Open 5070** / **DemocracyWorks** when scaling (PDF Phase 2).  
-**7.7** Optional: curated **state ID rules** table (static or periodically updated) for FAQ-style UX.
+**Outcomes:** Google Civic voter info where available; Vote Smart supplements; strong disclaimers; SOS links.
+
+| # | Task |
+|---|------|
+| **7.1** | Google Civic client + `voterInfoQuery`. |
+| **7.2** | UI: polling place / contests / fallback messaging. |
+| **7.3** | Vote Smart deadlines/tools. |
+| **7.4** | Disclaimer component (not official election mail). |
+| **7.5** | Vote.org + NASS + state board links. |
+| **7.6** | Open 5070 / DemocracyWorks later. |
+| **7.7** | Optional static ID-rules reference table. |
+
+**Superpowers:** `verification-before-completion` (test with real sample addresses in staging only; no PII logs).  
+**Wondel:** `design-everyday-things` (error clarity), `storybrand-messaging` **only** to clarify user-as-hero journey ethically.  
+**UI/UX Pro Max:** high-trust, calm alert patterns.
 
 ---
 
 ### 8. Civic and political events feature
 
-**8.1** Integrate **Eventbrite API** with location + keyword filters (“town hall”, “civic”, etc.—tune to reduce noise, PDF).  
-**8.2** Integrate **Meetup API** (OAuth as required); fetch upcoming events near user coordinates.  
-**8.3** Integrate **VolunteerMatch** (and later **All For Good**) for volunteer-style engagement listings (PDF).  
-**8.4** Normalization: single `CivicEvent` model; dedupe by title, time, and approximate location in DB.  
-**8.5** UI: event cards, date/time, location, external link, source badge.  
-**8.6** Classification layer (rules first, ML later): filter obvious non-civic spam.  
-**8.7** Scheduled refresh job or nightly pull once volume grows (PDF ingestion pipeline).  
-**8.8** Optional: ICS export / Google Calendar link (PDF add-on).
+**Outcomes:** Merged event feed; dedupe; civic keyword filters; VolunteerMatch integration path.
+
+| # | Task |
+|---|------|
+| **8.1** | Eventbrite search near lat/lng. |
+| **8.2** | Meetup OAuth + upcoming events. |
+| **8.3** | VolunteerMatch (GraphQL) opportunities. |
+| **8.4** | `CivicEvent` table + dedupe key. |
+| **8.5** | Event cards + map optional. |
+| **8.6** | Rule-based civic classifier v1. |
+| **8.7** | Nightly cron stub / manual refresh MVP. |
+| **8.8** | Optional ICS export. |
+
+**Superpowers:** `executing-plans` (many integrations); **TDD** for dedupe + classifier.  
+**Wondel:** `cro-methodology` (funnel to signup — ethical only), `hooked-ux` **review for ethics** (habit vs manipulation).  
+**UI/UX Pro Max:** card grid spacing; date/time hierarchy.
 
 ---
 
-### 9. Local government pilot (defer until 5–8 are stable)
+### 9. Local government pilot
 
-**9.1** Select **one** high-value jurisdiction: e.g. **Legistar/Granicus** city with documented API **or** strong open-data portal (PDF cites NYC, Austin-style datasets).  
-**9.2** Implement single integration end-to-end: agendas/legislation subset only; avoid full national local scope.  
-**9.3** Map items to user via county/city from geolocation pipeline where possible.  
-**9.4** UI: “Local pilot” section with coverage disclaimer (only certain cities).  
-**9.5** Plan scraper/Municode/Apify path only after official API path is learned (PDF risk: breakage).  
-**9.6** Evaluate **Council Data Project** patterns for reuse when expanding (PDF).
+**Outcomes:** One city or portal integrated end-to-end; honest coverage messaging.
+
+| # | Task |
+|---|------|
+| **9.1** | Select Legistar or open-data pilot (PDF examples). |
+| **9.2** | Adapter + `/api/local/*`. |
+| **9.3** | Match items to user county/city. |
+| **9.4** | UI “pilot” banner + gaps. |
+| **9.5** | Scraper plan deferred. |
+| **9.6** | CDP/OCD research note in `docs/`. |
+
+**Superpowers:** `using-git-worktrees` (experimental integrations).  
+**Wondel:** `lean-startup` (smallest pilot), `design-sprint` if workshop needed.  
+**UI/UX Pro Max:** avoid overstating coverage.
 
 ---
 
 ### 10. User accounts, saved items, and engagement
 
-**10.1** Add authentication (e.g. NextAuth with email/OAuth, or hosted provider).  
-**10.2** User profile: default location, notification preferences (stub OK at first).  
-**10.3** Save/follow bills (federal + state) stored in DB; “My civic feed” view.  
-**10.4** Optional alerts: email digest of new actions on followed bills (batch job).  
-**10.5** Rate-limit user actions to prevent abuse of your API routes.  
-**10.6** Privacy: minimal PII; document retention; secure session cookies / JWT.
+**Outcomes:** Auth; saved bills; optional digest; rate limits; privacy policy hooks.
+
+| # | Task |
+|---|------|
+| **10.1** | Auth provider integration. |
+| **10.2** | Profile + default location. |
+| **10.3** | Saved bills / tags. |
+| **10.4** | Email digest job (optional). |
+| **10.5** | Abuse-resistant API limits. |
+| **10.6** | Privacy policy + data retention doc. |
+
+**Superpowers:** `receiving-code-review` on auth PRs.  
+**Wondel:** `inspired-product` (discovery vs delivery), `drive-motivation` for ethical engagement copy.  
+**UI/UX Pro Max:** account settings layout.
 
 ---
 
 ### 11. Trust, transparency, and optional fact context
 
-**11.1** Every data card: **primary source link**, **provider name**, **retrieved/freshness** timestamp.  
-**11.2** Implement **Google Fact Check Tools API** queries for optional “related fact-checks” on news/claim surfaces (PDF §2.7).  
-**11.3** Wikipedia/Wikidata enrichment for legislator/topic stubs—clearly label as tertiary context.  
-**11.4** Avoid presenting unverified user content as fact; no anonymous rumor feed in v1.  
-**11.5** Later: Media Cloud / GDELT only if product has clear UX for “context” (PDF Phase 3).
+**Outcomes:** Every card has source + fetched time; optional Fact Check sidebar; no anonymous claims feed.
+
+| # | Task |
+|---|------|
+| **11.1** | `SourceAttribution` component. |
+| **11.2** | Google Fact Check API integration (server). |
+| **11.3** | Wikidata enrichment (labeled tertiary). |
+| **11.4** | Content policy: UGC scope (if any). |
+| **11.5** | MediaCloud/GDELT deferred to **13** research spike. |
+
+**Superpowers:** `brainstorming` for trust UX controversies.  
+**Wondel:** `made-to-stick` / `storybrand-messaging` for **transparent** explanation of sourcing, not hype.  
+**UI/UX Pro Max:** subtle callouts; never alarmist.
 
 ---
 
 ### 12. Quality assurance, performance, and operations
 
-**12.1** Unit tests for normalization and geocoding edge cases; contract tests for API adapters (mocked).  
-**12.2** E2E smoke tests for critical paths: set location → federal list → detail.  
-**12.3** Performance: DB indexes on external IDs and user saves; pagination everywhere.  
-**12.4** Observability: error tracking (e.g. Sentry), structured logs, dashboards for API failure rates.  
-**12.5** Data freshness monitoring per source (PDF: stale feed detection).  
-**12.6** Security review: OWASP basics, SSRF protection on any user-supplied URLs, secret rotation.  
-**12.7** Load/usage review before enabling heavy polling or bulk jobs.
+**Outcomes:** CI green; E2E smoke; perf budgets; Sentry; security baseline; freshness dashboard internal.
+
+| # | Task |
+|---|------|
+| **12.1** | Unit + contract tests for adapters & geo. |
+| **12.2** | Playwright (or similar) smoke: location → federal detail. |
+| **12.3** | Indexes, pagination audit, image/font budget. |
+| **12.4** | Sentry + log queryability. |
+| **12.5** | `data_source_health` table + alert. |
+| **12.6** | OWASP pass; SSRF review; secret rotation runbook. |
+| **12.7** | Load test before bulk jobs enabled. |
+
+**Superpowers:** `finishing-a-development-branch` each release; `verification-before-completion` on incidents.  
+**Wondel:** `high-perf-browser`, `release-it`, `system-design`.  
+**UI/UX Pro Max:** performance-friendly motion (Master).
 
 ---
 
-### 13. Phase 2 and beyond (from PDF—after v1 is stable)
+### 13. Phase 2 and beyond (scale)
 
-**13.1** **GovInfo BillStatus bulk** ingestion + diff detection for historical and change alerts.  
-**13.2** **Elasticsearch/OpenSearch** for full-text bill search at scale.  
-**13.3** **NLP summarization** for long bill text; human-review policy for high-risk summaries.  
-**13.4** Paid tiers: **BillTrack50**, **DemocracyWorks Elections API** where ROI is clear.  
-**13.5** **Redis** + worker queue for caching and scheduled jobs.  
-**13.6** Expand local coverage with OCD scrapers, CDP, and partnerships (OpenGov) per PDF.
+**Outcomes:** Bulk ingest, search tier, NLP, commercial APIs, Redis queue, broad local.
+
+| # | Task |
+|---|------|
+| **13.1** | GovInfo BillStatus bulk + diff alerts. |
+| **13.2** | Elasticsearch/OpenSearch. |
+| **13.3** | NLP summaries with risk review. |
+| **13.4** | BillTrack50 / DemocracyWorks evaluation + integration. |
+| **13.5** | Redis + worker queue (BullMQ etc.). |
+| **13.6** | Local expansion playbook. |
+
+**Superpowers:** `dispatching-parallel-agents` for spiking 13.x in isolation.  
+**Wondel:** `ddia-systems`, `system-design`, `clean-architecture`.  
+**UI/UX Pro Max:** dashboard density / “pro” tier IA if needed.
 
 ---
 
-### Roadmap dependency order (quick reference)
-
-Build in roughly this order: **1** (includes **1.7** Python for UI CLI) → **2** (starts with **2.1** UI/UX Pro Max design-system + **MASTER.md**) → **3 → 4 → 5 → 6 → 7 → 8 → 10** (auth/saves can overlap late in 5–8), then **9**, then **12** continuously, then **11** as needed, then **13**. **2.11–2.12** repeat across features as new pages ship.
-
----
-
-*Plan generated from the CivicLink research PDF. Filename on disk: `Federal Legislation _ Federal Government Actions (1).pdf`.*
+*Legislative research PDF on disk: `Federal Legislation _ Federal Government Actions (1).pdf`.*
