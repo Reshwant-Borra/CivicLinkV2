@@ -116,13 +116,12 @@ export default function AboutDataPage() {
             <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
               The table below reflects the{" "}
               <strong className="font-medium text-foreground">
-                integration plan
+                integration direction
               </strong>{" "}
-              in{" "}
-              <span className="font-mono text-foreground">PROJECT_PLAN.md</span>
-              , which is derived from the legislative research PDF. Vendor
-              limits and schemas change; verify against live documentation
-              before shipping integrations.
+              from the legislative research PDF and repository docs (
+              <span className="font-mono text-foreground">AGENTS.md</span>
+              ). Vendor limits and schemas change; verify against live
+              documentation before shipping integrations.
             </p>
             <SourceTable
               caption="Domains and representative sources"
@@ -207,6 +206,31 @@ export default function AboutDataPage() {
                 web/.env.example
               </span>
               .
+            </p>
+          </section>
+
+          <section aria-labelledby="geo-edge-heading" className="space-y-4">
+            <h2
+              id="geo-edge-heading"
+              className="text-xl font-semibold tracking-tight text-foreground"
+            >
+              Location resolution & edge cases
+            </h2>
+            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+              ZIP-only and street-augmented geocoding can fail or disagree
+              across Census, GeoNames/Nominatim, and optional Google Civic.{" "}
+              <strong className="font-medium text-foreground">
+                PO boxes, redistricting, and split districts
+              </strong>{" "}
+              are normal sources of ambiguity — always confirm voting and
+              representation with official state or local sources.
+            </p>
+            <p className="max-w-prose text-sm text-muted-foreground">
+              Operators: see repository file{" "}
+              <span className="font-mono text-foreground">
+                docs/geo-edge-cases.md
+              </span>{" "}
+              for persistence, cookies, and logging notes.
             </p>
           </section>
 

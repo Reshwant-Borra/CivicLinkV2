@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteHeaderWrapper } from "@/components/layout/site-header-wrapper";
 import { SkipLink } from "@/components/layout/skip-link";
 
 export default function SiteLayout({
@@ -12,7 +12,7 @@ export default function SiteLayout({
   return (
     <>
       <SkipLink />
-      <SiteHeader />
+      <SiteHeaderWrapper />
       <main
         id="main-content"
         tabIndex={-1}

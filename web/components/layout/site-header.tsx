@@ -3,14 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { MapPin, Menu, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { primaryNav } from "./nav-config";
 
-export function SiteHeader() {
+export type SiteHeaderProps = {
+  /** Saved jurisdiction (httpOnly cookie); link goes to Settings to change. */
+  locationChip?: { label: string; href: string } | null;
+};
+
+export function SiteHeader({ locationChip = null }: SiteHeaderProps) {
   const pathname = usePathname();
   const menuId = useId();
   const [open, setOpen] = useState(false);
@@ -51,35 +56,47 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        <nav
-          aria-label="Primary"
-          className="hidden flex-1 justify-end md:flex md:items-center"
-        >
-          <ul className="flex flex-wrap items-center justify-end gap-1 lg:gap-2">
-            {primaryNav.map(({ href, label }) => {
-              const active =
-                href === "/"
-                  ? pathname === "/"
-                  : pathname === href || pathname.startsWith(`${href}/`);
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "cursor-pointer rounded-md px-2.5 py-2 text-sm font-medium no-underline outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                      active
-                        ? "bg-secondary text-secondary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    {label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        <div className="hidden min-w-0 flex-1 items-center justify-end gap-2 md:flex md:gap-3">
+          {locationChip ? (
+            <Link
+              href={locationChip.href}
+              className="focus-visible:ring-ring flex max-w-[10rem] min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-primary no-underline outline-none focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:max-w-[14rem]"
+              title="Change location in Settings"
+            >
+              <MapPin className="size-4 shrink-0 text-primary" aria-hidden />
+              <span className="truncate">{locationChip.label}</span>
+            </Link>
+          ) : null}
+          <nav
+            aria-label="Primary"
+            className="flex flex-wrap items-center justify-end gap-1 lg:gap-2"
+          >
+            <ul className="flex flex-wrap items-center justify-end gap-1 lg:gap-2">
+              {primaryNav.map(({ href, label }) => {
+                const active =
+                  href === "/"
+                    ? pathname === "/"
+                    : pathname === href || pathname.startsWith(`${href}/`);
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "cursor-pointer rounded-md px-2.5 py-2 text-sm font-medium no-underline outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                        active
+                          ? "bg-secondary text-secondary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
       </div>
 
       <div
@@ -94,6 +111,22 @@ export function SiteHeader() {
           aria-label="Primary mobile"
           className="mx-auto max-w-6xl px-4 pb-4"
         >
+          {locationChip ? (
+            <div className="border-border border-b pb-3">
+              <Link
+                href={locationChip.href}
+                onClick={() => setOpen(false)}
+                className="focus-visible:ring-ring flex cursor-pointer items-center gap-2 rounded-md py-1 text-sm text-primary no-underline outline-none focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <MapPin className="size-4 shrink-0" aria-hidden />
+                <span className="font-medium text-foreground">Location:</span>
+                <span className="min-w-0 truncate">{locationChip.label}</span>
+              </Link>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tap to change in Settings.
+              </p>
+            </div>
+          ) : null}
           <ul className="flex flex-col gap-1 pt-2">
             {primaryNav.map(({ href, label }) => {
               const active =

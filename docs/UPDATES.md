@@ -1,6 +1,6 @@
 # CivicLink — development updates
 
-This log summarizes significant batch work on the repository. For the authoritative roadmap, see **`PROJECT_PLAN.md`**.
+This log summarizes significant batch work on the repository. For how agents and Claude Code should run, see **`AGENTS.md`** and **`CLAUDE.md`**; for data and vendor strategy, see **`Federal Legislation _ Federal Government Actions (1).pdf`**.
 
 ---
 

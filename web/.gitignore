@@ -24,15 +24,16 @@
 .DS_Store
 *.pem
 
+# Local secrets (redundant with repo-root .env.*; explicit for web-only workflows)
+.env.local
+.env*.local
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — keep .env.example tracked for onboarding
-.env*
-!.env.example
 
 # vercel
 .vercel
