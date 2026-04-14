@@ -188,3 +188,62 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────
+   CivicLink homepage: glassmorphism shell animations
+   All animations are guarded by prefers-reduced-motion
+   above — they collapse to 0.01ms in reduced-motion mode.
+────────────────────────────────────────────────────────── */
+
+/* Satellite node floats (subtle, async timings) */
+@keyframes civic-float-1 {
+  0%, 100% { transform: translate(0, 0); }
+  35%       { transform: translate(3px, -7px); }
+  65%       { transform: translate(-2px, -4px); }
+}
+@keyframes civic-float-2 {
+  0%, 100% { transform: translate(0, 0); }
+  40%       { transform: translate(-4px, -6px); }
+  70%       { transform: translate(3px, -3px); }
+}
+@keyframes civic-float-3 {
+  0%, 100% { transform: translate(0, 0); }
+  30%       { transform: translate(2px, 7px); }
+  60%       { transform: translate(-3px, 4px); }
+}
+@keyframes civic-float-4 {
+  0%, 100% { transform: translate(0, 0); }
+  45%       { transform: translate(-5px, -5px); }
+  75%       { transform: translate(3px, -2px); }
+}
+@keyframes civic-float-5 {
+  0%, 100% { transform: translate(0, 0); }
+  38%       { transform: translate(4px, -8px); }
+  68%       { transform: translate(-2px, -5px); }
+}
+
+/* Floating insight card gentle bob */
+@keyframes civic-float-b {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes civic-float-c {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* Central orb pulse */
+@keyframes civic-pulse-orb {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.88; transform: scale(1.04); }
+}
+
+/* Apply animations */
+.civic-float-1 { animation: civic-float-1 7.2s ease-in-out infinite; }
+.civic-float-2 { animation: civic-float-2 8.5s ease-in-out infinite 0.8s; }
+.civic-float-3 { animation: civic-float-3 9.1s ease-in-out infinite 1.4s; }
+.civic-float-4 { animation: civic-float-4 7.8s ease-in-out infinite 2.1s; }
+.civic-float-5 { animation: civic-float-5 8.0s ease-in-out infinite 0.4s; }
+.civic-float-b { animation: civic-float-b 6.0s ease-in-out infinite; }
+.civic-float-c { animation: civic-float-c 7.4s ease-in-out infinite 1.0s; }
+.civic-pulse-orb { animation: civic-pulse-orb 4.5s ease-in-out infinite; }

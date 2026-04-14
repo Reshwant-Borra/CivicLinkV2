@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(python .cursor/skills/ui-ux-pro-max/scripts/search.py \"glassmorphism premium dark navy civic assistant\" --domain style)",
+      "Bash(python .cursor/skills/ui-ux-pro-max/scripts/search.py \"glassmorphism dark futuristic premium\" --domain color)"
     ]
   }
 }
