@@ -20,8 +20,8 @@ type ActionCardProps = {
   /** "default" | "wide" — wide cards span 2 columns */
   size?: "default" | "wide";
   accentColor: string;
-  glowColor: string;
   tag?: string;
+  compact?: boolean;
 };
 
 function ActionCard({
@@ -31,51 +31,53 @@ function ActionCard({
   href,
   size = "default",
   accentColor,
-  glowColor,
   tag,
+  compact = false,
 }: ActionCardProps) {
+  const isWide = size === "wide" && !compact;
+
   return (
     <Link
       href={href}
       className={cn(
-        "group relative rounded-2xl border border-white/[0.08] overflow-hidden cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/60",
-        "transition-all duration-220",
-        "hover:border-white/[0.16] hover:shadow-[0_8px_40px_rgba(0,0,0,0.45)]",
-        size === "wide" ? "col-span-2" : "col-span-1"
+        "group relative overflow-hidden cursor-pointer",
+        compact ? "rounded-[1.3rem] min-h-[9.35rem]" : "rounded-2xl",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3F6E9A]/40",
+        "transition-all duration-200",
+        "bg-white border border-[#E8E1D7] shadow-[0_2px_8px_rgba(29,36,48,0.05)]",
+        "hover:border-[#C9BFB2] hover:shadow-[0_8px_24px_rgba(63,110,154,0.12)]",
+        isWide ? "col-span-2" : "col-span-1"
       )}
-      style={{
-        background:
-          "linear-gradient(145deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.025) 100%)",
-        backdropFilter: "blur(8px)",
-      }}
     >
-      {/* Subtle accent glow on hover */}
+      {/* Soft accent tint on hover */}
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
         style={{
-          background: `radial-gradient(ellipse at top left, ${glowColor} 0%, transparent 65%)`,
+          background: `radial-gradient(ellipse at top left, ${accentColor}09 0%, transparent 60%)`,
         }}
         aria-hidden
       />
 
       <div
         className={cn(
-          "relative z-10 flex gap-4 p-4",
-          size === "wide" ? "items-center" : "flex-col"
+          "relative z-10 flex",
+          compact ? "min-h-[8.75rem] flex-col gap-2.5 p-3" : "gap-4 p-4",
+          isWide ? "items-center" : "flex-col"
         )}
       >
         {/* Icon */}
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
+          className={cn(
+            "flex items-center justify-center shrink-0 rounded-xl transition-transform duration-200 group-hover:scale-105",
+            compact ? "h-9 w-9" : "h-10 w-10"
+          )}
           style={{
-            background: `${accentColor}1A`,
-            border: `1px solid ${accentColor}30`,
-            boxShadow: `0 0 12px ${glowColor}`,
+            background: `${accentColor}10`,
+            border: `1px solid ${accentColor}20`,
           }}
         >
           <Icon
-            className="w-5 h-5"
+            className={compact ? "h-[18px] w-[18px]" : "w-5 h-5"}
             style={{ color: accentColor }}
             aria-hidden
           />
@@ -84,24 +86,40 @@ function ActionCard({
         {/* Text */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[14px] font-semibold text-[#E8F0FF] leading-tight group-hover:text-white transition-colors duration-200">
+            <h3
+              className={cn(
+                "font-semibold leading-tight transition-colors duration-200 group-hover:text-black",
+                compact ? "text-[13px]" : "text-[14px]"
+              )}
+              style={{ color: "#1D2430" }}
+            >
               {title}
             </h3>
             <ArrowUpRight
-              className="w-3.5 h-3.5 text-[#3D5070] group-hover:text-[#8496B8] shrink-0 mt-0.5 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              className="w-3.5 h-3.5 shrink-0 mt-0.5 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              style={{ color: "#C9BFB2" }}
               aria-hidden
             />
           </div>
-          <p className="text-[12px] text-[#5A7094] leading-snug mt-1 group-hover:text-[#7A90B4] transition-colors duration-200">
+          <p
+            className={cn(
+              "mt-1 leading-snug",
+              compact ? "line-clamp-2 text-[10.5px]" : "text-[12px]"
+            )}
+            style={{ color: "#7A8594" }}
+          >
             {description}
           </p>
           {tag && (
             <span
-              className="inline-block mt-2 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide"
+              className={cn(
+                "inline-block rounded-full px-2 py-0.5 font-semibold tracking-wide",
+                compact ? "mt-1.5 text-[9px]" : "mt-2 text-[10px]"
+              )}
               style={{
-                background: `${accentColor}18`,
+                background: `${accentColor}10`,
                 color: accentColor,
-                border: `1px solid ${accentColor}28`,
+                border: `1px solid ${accentColor}20`,
               }}
             >
               {tag}
@@ -121,8 +139,7 @@ const cards: ActionCardProps[] = [
     icon: MapPin,
     href: "/voting",
     size: "wide",
-    accentColor: "#3B82F6",
-    glowColor: "rgba(59,130,246,0.15)",
+    accentColor: "#3F6E9A",
     tag: "Election Nov 5",
   },
   {
@@ -130,16 +147,14 @@ const cards: ActionCardProps[] = [
     description: "See every race and measure on your upcoming ballot.",
     icon: FileText,
     href: "/voting",
-    accentColor: "#818CF8",
-    glowColor: "rgba(129,140,248,0.14)",
+    accentColor: "#5582AD",
   },
   {
     title: "Upcoming Deadlines",
     description: "Key registration, early voting, and civic action dates.",
     icon: Clock,
     href: "/voting",
-    accentColor: "#FBBF24",
-    glowColor: "rgba(251,191,36,0.12)",
+    accentColor: "#D39B38",
     tag: "Oct 7 next",
   },
   {
@@ -148,18 +163,15 @@ const cards: ActionCardProps[] = [
       "Town halls, school board meetings, and civic gatherings near you.",
     icon: CalendarDays,
     href: "/events",
-    accentColor: "#34D399",
-    glowColor: "rgba(52,211,153,0.12)",
+    accentColor: "#5F8B68",
   },
   {
     title: "Bill Spotlight",
-    description:
-      "Follow legislation that may affect your community directly.",
+    description: "Follow legislation that may affect your community directly.",
     icon: Scale,
     href: "/federal",
     size: "wide",
-    accentColor: "#A78BFA",
-    glowColor: "rgba(167,139,250,0.14)",
+    accentColor: "#D39B38",
     tag: "SB-247 active",
   },
   {
@@ -167,23 +179,50 @@ const cards: ActionCardProps[] = [
     description: "Explore your reps, boundaries, and who votes on what.",
     icon: Navigation,
     href: "/local",
-    accentColor: "#22D3EE",
-    glowColor: "rgba(34,211,238,0.12)",
+    accentColor: "#3F6E9A",
   },
 ];
 
-export function ActionGrid() {
+type ActionGridProps = {
+  variant?: "default" | "compact";
+};
+
+export function ActionGrid({ variant = "default" }: ActionGridProps) {
+  const compact = variant === "compact";
+
   return (
-    <section aria-labelledby="action-grid-heading">
-      <h2
-        id="action-grid-heading"
-        className="text-[11px] font-semibold uppercase tracking-widest text-[#3D5070] mb-3"
+    <section
+      aria-labelledby="action-grid-heading"
+      className={cn(
+        compact &&
+          "w-full rounded-[1.8rem] border border-[#E8E1D7] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,243,237,0.92)_100%)] p-4 shadow-[0_10px_28px_rgba(63,110,154,0.09)]"
+      )}
+    >
+      <div className={compact ? "mb-3 space-y-1" : "mb-3"}>
+        <h2
+          id="action-grid-heading"
+          className="text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "#8E99A8" }}
+        >
+          Quick actions
+        </h2>
+        {compact ? (
+          <p
+            className="text-[11px] leading-relaxed"
+            style={{ color: "#7A8594" }}
+          >
+            Mid-page civic shortcuts beside your snapshot.
+          </p>
+        ) : null}
+      </div>
+      <div
+        className={cn(
+          "grid gap-3",
+          compact ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 lg:grid-cols-3"
+        )}
       >
-        Quick actions
-      </h2>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {cards.map((card) => (
-          <ActionCard key={card.title} {...card} />
+          <ActionCard key={card.title} {...card} compact={compact} />
         ))}
       </div>
     </section>

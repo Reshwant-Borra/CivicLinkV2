@@ -8,33 +8,50 @@ export function HomeHeader() {
   const [hasNotifs] = useState(true);
 
   return (
-    <header className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.06] shrink-0">
+    <header
+      className="flex items-center gap-3 px-5 py-3.5 shrink-0"
+      style={{ borderBottom: "1px solid #E8E1D7" }}
+    >
       {/* Location chip */}
       <button
         type="button"
-        className="hidden md:flex items-center gap-2 rounded-full px-3 py-1.5 bg-white/[0.07] border border-white/[0.10] hover:bg-white/[0.11] transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/60 shrink-0"
+        className="hidden md:flex items-center gap-2 rounded-full px-3 py-1.5 transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3F6E9A]/40 shrink-0 hover:bg-[#EDF4FA]"
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid #E8E1D7",
+        }}
         aria-label="Change location"
       >
-        <MapPin className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" aria-hidden />
-        <span className="text-[12.5px] font-medium text-[#C0D4F0] whitespace-nowrap">
+        <MapPin
+          className="w-3.5 h-3.5 shrink-0"
+          style={{ color: "#3F6E9A" }}
+          aria-hidden
+        />
+        <span
+          className="text-[12.5px] font-medium whitespace-nowrap"
+          style={{ color: "#1D2430" }}
+        >
           Forsyth County, GA
         </span>
         <ChevronDown
-          className="w-3 h-3 text-[#4B6080] shrink-0"
+          className="w-3 h-3 shrink-0"
+          style={{ color: "#556070" }}
           aria-hidden
         />
       </button>
 
       {/* Divider */}
       <div
-        className="hidden md:block w-px h-4 bg-white/[0.10] shrink-0"
+        className="hidden md:block w-px h-4 shrink-0"
+        style={{ background: "#E8E1D7" }}
         aria-hidden
       />
 
       {/* Search */}
       <div className="flex-1 relative min-w-0">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4B6080] pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+          style={{ color: "#556070" }}
           aria-hidden
         />
         <input
@@ -43,13 +60,19 @@ export function HomeHeader() {
           onChange={(e) => setSearchValue(e.target.value)}
           placeholder="Search bills, events, candidates…"
           aria-label="Search civic content"
-          className="w-full h-9 pl-9 pr-9 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] text-[#D0DDEF] placeholder:text-[#3D5070] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/50 focus:bg-white/[0.07] focus:border-[#2563EB]/40 transition-all duration-200"
+          className="w-full h-9 pl-9 pr-9 rounded-xl text-[13px] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3F6E9A]/25 focus:border-[#3F6E9A]/35 placeholder:text-[#8E99A8]"
+          style={{
+            background: "#F6F3ED",
+            border: "1px solid #E8E1D7",
+            color: "#1D2430",
+          }}
         />
         {searchValue && (
           <button
             type="button"
             onClick={() => setSearchValue("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4B6080] hover:text-[#A8C0E0] transition-colors cursor-pointer"
+            className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer hover:opacity-60"
+            style={{ color: "#556070" }}
             aria-label="Clear search"
           >
             <X className="w-3.5 h-3.5" aria-hidden />
@@ -62,13 +85,21 @@ export function HomeHeader() {
         {/* Notifications */}
         <button
           type="button"
-          className="relative w-8 h-8 rounded-xl flex items-center justify-center bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.10] transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/60"
+          className="relative w-8 h-8 rounded-xl flex items-center justify-center transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3F6E9A]/40 hover:bg-[#EDF4FA]"
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E8E1D7",
+          }}
           aria-label={hasNotifs ? "3 new notifications" : "Notifications"}
         >
-          <Bell className="w-4 h-4 text-[#8496B8]" aria-hidden />
+          <Bell className="w-4 h-4" style={{ color: "#556070" }} aria-hidden />
           {hasNotifs && (
             <span
-              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#2563EB] shadow-[0_0_6px_rgba(37,99,235,0.8)]"
+              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+              style={{
+                background: "#D39B38",
+                boxShadow: "0 0 5px rgba(214,167,94,0.55)",
+              }}
               aria-hidden
             />
           )}
@@ -77,9 +108,10 @@ export function HomeHeader() {
         {/* Avatar */}
         <button
           type="button"
-          className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/60 shadow-[0_0_12px_rgba(37,99,235,0.3)]"
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3F6E9A]/40"
           style={{
-            background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)",
+            background: "linear-gradient(135deg, #3F6E9A 0%, #D39B38 100%)",
+            boxShadow: "0 2px 8px rgba(79,109,138,0.22)",
           }}
           aria-label="Account menu"
         >

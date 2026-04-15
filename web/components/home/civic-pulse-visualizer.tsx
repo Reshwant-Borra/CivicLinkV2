@@ -16,8 +16,8 @@ type Node = {
   /** Position in the 480×380 coordinate space */
   cx: number;
   cy: number;
+  /** Chip accent color */
   color: string;
-  glowColor: string;
   animClass: string;
 };
 
@@ -28,8 +28,7 @@ const NODES: Node[] = [
     icon: GraduationCap,
     cx: 365,
     cy: 42,
-    color: "#3B82F6",
-    glowColor: "rgba(59,130,246,0.30)",
+    color: "#3F6E9A",
     animClass: "civic-float-1",
   },
   {
@@ -38,8 +37,7 @@ const NODES: Node[] = [
     icon: Car,
     cx: 432,
     cy: 168,
-    color: "#818CF8",
-    glowColor: "rgba(129,140,248,0.28)",
+    color: "#D39B38",
     animClass: "civic-float-2",
   },
   {
@@ -48,8 +46,7 @@ const NODES: Node[] = [
     icon: Home,
     cx: 368,
     cy: 318,
-    color: "#A78BFA",
-    glowColor: "rgba(167,139,250,0.28)",
+    color: "#5582AD",
     animClass: "civic-float-3",
   },
   {
@@ -58,8 +55,7 @@ const NODES: Node[] = [
     icon: Users,
     cx: 90,
     cy: 294,
-    color: "#22D3EE",
-    glowColor: "rgba(34,211,238,0.25)",
+    color: "#5F8B68",
     animClass: "civic-float-4",
   },
   {
@@ -68,16 +64,13 @@ const NODES: Node[] = [
     icon: TrendingUp,
     cx: 58,
     cy: 128,
-    color: "#34D399",
-    glowColor: "rgba(52,211,153,0.25)",
+    color: "#D39B38",
     animClass: "civic-float-5",
   },
 ];
 
-/** Width of each satellite node chip (for centering the div on cx/cy) */
 const CHIP_W = 110;
 const CHIP_H = 44;
-/** Central orb radius */
 const ORB_R = 52;
 const CENTER = { x: 240, y: 190 };
 
@@ -98,8 +91,8 @@ export function CivicPulseVisualizer() {
           width: 220,
           height: 220,
           background:
-            "radial-gradient(circle, rgba(37,99,235,0.22) 0%, rgba(37,99,235,0.08) 50%, transparent 75%)",
-          filter: "blur(2px)",
+            "radial-gradient(circle, rgba(91,124,153,0.14) 0%, rgba(91,124,153,0.04) 55%, transparent 75%)",
+          filter: "blur(3px)",
         }}
         aria-hidden
       />
@@ -119,7 +112,7 @@ export function CivicPulseVisualizer() {
           rx={168}
           ry={148}
           fill="none"
-          stroke="rgba(255,255,255,0.04)"
+          stroke="rgba(91,124,153,0.12)"
           strokeWidth="1"
           strokeDasharray="4 8"
         />
@@ -139,7 +132,7 @@ export function CivicPulseVisualizer() {
           />
         ))}
 
-        {/* Glow dot at node endpoints */}
+        {/* Connection dot at node endpoints */}
         {NODES.map((n) => (
           <circle
             key={`dot-${n.id}`}
@@ -147,7 +140,7 @@ export function CivicPulseVisualizer() {
             cy={n.cy}
             r="3"
             fill={n.color}
-            fillOpacity="0.5"
+            fillOpacity="0.55"
           />
         ))}
       </svg>
@@ -168,25 +161,32 @@ export function CivicPulseVisualizer() {
           className="absolute inset-0 rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 65%, transparent 100%)",
-            transform: "scale(1.5)",
+              "radial-gradient(circle, rgba(91,124,153,0.12) 0%, rgba(91,124,153,0.03) 65%, transparent 100%)",
+            transform: "scale(1.55)",
           }}
         />
-        {/* Glass surface */}
+        {/* Orb surface — warm glass on light bg */}
         <div
-          className="absolute inset-0 rounded-full border border-white/[0.18] flex flex-col items-center justify-center gap-0.5"
+          className="absolute inset-0 rounded-full flex flex-col items-center justify-center gap-0.5"
           style={{
             background:
-              "linear-gradient(135deg, rgba(37,99,235,0.28) 0%, rgba(29,78,216,0.18) 50%, rgba(14,36,99,0.35) 100%)",
-            backdropFilter: "blur(12px)",
+              "linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(247,245,242,0.70) 100%)",
+            border: "1px solid rgba(91,124,153,0.22)",
+            backdropFilter: "blur(10px)",
             boxShadow:
-              "0 0 32px rgba(37,99,235,0.35), 0 0 8px rgba(37,99,235,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
+              "0 8px 24px rgba(91,124,153,0.16), 0 2px 8px rgba(91,124,153,0.10), inset 0 1px 0 rgba(255,255,255,0.90)",
           }}
         >
-          <span className="text-[10px] font-mono font-semibold text-[#60A5FA] tracking-widest uppercase leading-none">
+          <span
+            className="text-[10px] font-mono font-semibold tracking-widest uppercase leading-none"
+            style={{ color: "#3F6E9A" }}
+          >
             SB-247
           </span>
-          <span className="text-[9px] text-[#6B80A8] leading-none mt-0.5">
+          <span
+            className="text-[9px] leading-none mt-0.5"
+            style={{ color: "#8E99A8" }}
+          >
             Civic Pulse
           </span>
         </div>
@@ -208,26 +208,26 @@ export function CivicPulseVisualizer() {
             aria-hidden
           >
             <div
-              className="w-full h-full rounded-xl border flex items-center gap-2 px-2.5 cursor-default"
+              className="w-full h-full rounded-xl flex items-center gap-2 px-2.5 cursor-default"
               style={{
-                background: `linear-gradient(135deg, ${n.glowColor} 0%, rgba(255,255,255,0.04) 100%)`,
-                borderColor: `${n.color}33`,
-                backdropFilter: "blur(12px)",
-                boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05), 0 0 16px ${n.glowColor}`,
+                background: "rgba(255,255,255,0.90)",
+                backdropFilter: "blur(8px)",
+                border: `1px solid ${n.color}28`,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)",
               }}
             >
               <div
                 className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                 style={{
-                  background: `${n.color}22`,
-                  border: `1px solid ${n.color}44`,
+                  background: `${n.color}14`,
+                  border: `1px solid ${n.color}28`,
                 }}
               >
                 <Icon className="w-3.5 h-3.5" style={{ color: n.color }} />
               </div>
               <span
                 className="text-[11px] font-semibold leading-tight"
-                style={{ color: "rgba(240,244,255,0.90)" }}
+                style={{ color: "#1D2430" }}
               >
                 {n.label}
               </span>

@@ -14,13 +14,13 @@ function FloatingInsightCard({
 }) {
   return (
     <div
-      className={`absolute z-10 flex items-center gap-2 rounded-xl px-3 py-2 border border-white/[0.12] pointer-events-none ${className}`}
+      className={`absolute z-10 flex items-center gap-2 rounded-xl px-3 py-2 pointer-events-none ${className}`}
       style={{
-        background:
-          "linear-gradient(135deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 100%)",
-        backdropFilter: "blur(16px)",
+        background: "rgba(255,255,255,0.94)",
+        backdropFilter: "blur(12px)",
+        border: "1px solid rgba(231,229,228,0.80)",
         boxShadow:
-          "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06)",
+          "0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)",
         ...style,
       }}
     >
@@ -64,13 +64,14 @@ export function HeroSection() {
           <span
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-widest"
             style={{
-              background: "rgba(37,99,235,0.18)",
-              border: "1px solid rgba(37,99,235,0.30)",
-              color: "#60A5FA",
+              background: "rgba(91,124,153,0.09)",
+              border: "1px solid rgba(91,124,153,0.20)",
+              color: "#3F6E9A",
             }}
           >
             <span
-              className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse"
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ background: "#3F6E9A" }}
               aria-hidden
             />
             Forsyth County, GA
@@ -79,12 +80,16 @@ export function HeroSection() {
 
         {/* Greeting */}
         <div className="space-y-2">
-          <p className="text-[#6B80A8] text-sm font-medium tracking-wide">
+          <p
+            className="text-sm font-medium tracking-wide"
+            style={{ color: "#7A8594" }}
+          >
             Good evening.
           </p>
           <h1
             id="hero-heading"
-            className="text-3xl xl:text-[2.25rem] font-bold text-white leading-[1.15] tracking-[-0.02em]"
+            className="text-3xl xl:text-[2.25rem] font-bold leading-[1.15] tracking-[-0.02em]"
+            style={{ color: "#1D2430" }}
           >
             Here&apos;s what matters
             <br />
@@ -92,13 +97,16 @@ export function HeroSection() {
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage:
-                  "linear-gradient(90deg, #60A5FA 0%, #818CF8 60%, #A78BFA 100%)",
+                  "linear-gradient(90deg, #3F6E9A 0%, #D39B38 100%)",
               }}
             >
               in your area today.
             </span>
           </h1>
-          <p className="text-[#6B80A8] text-[14px] leading-relaxed max-w-sm">
+          <p
+            className="text-[14px] leading-relaxed max-w-sm"
+            style={{ color: "#7A8594" }}
+          >
             Stay ahead of local elections, deadlines, and policy changes — all
             from official sources.
           </p>
@@ -110,20 +118,20 @@ export function HeroSection() {
             <Link
               key={label}
               href={href}
-              className="flex items-center gap-2.5 rounded-xl px-3.5 py-3 text-[13px] font-semibold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/60 group"
+              className="flex items-center gap-2.5 rounded-xl px-3.5 py-3 text-[13px] font-semibold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3F6E9A]/40 group"
               style={
                 primary
                   ? {
                       background:
-                        "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+                        "linear-gradient(135deg, #3F6E9A 0%, #2F5B84 100%)",
                       boxShadow:
-                        "0 4px 20px rgba(37,99,235,0.4), 0 0 0 1px rgba(255,255,255,0.08)",
+                        "0 4px 16px rgba(91,124,153,0.28), 0 1px 4px rgba(91,124,153,0.18)",
                       color: "white",
                     }
                   : {
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.10)",
-                      color: "#B0C4E8",
+                      background: "#F6F3ED",
+                      border: "1px solid #E8E1D7",
+                      color: "#7A8594",
                     }
               }
             >
@@ -143,11 +151,12 @@ export function HeroSection() {
         </div>
 
         {/* Trust note */}
-        <p className="text-[11px] text-[#3D5070] leading-snug">
+        <p className="text-[11px] leading-snug" style={{ color: "#8E99A8" }}>
           Data from official government sources — no opinion, no agenda.{" "}
           <Link
             href="/about-data"
-            className="text-[#4B6080] underline underline-offset-2 hover:text-[#8496B8] transition-colors duration-200"
+            className="underline underline-offset-2 transition-opacity duration-200 hover:opacity-60"
+            style={{ color: "#7A8594" }}
           >
             About our data
           </Link>
@@ -159,33 +168,51 @@ export function HeroSection() {
         {/* Floating insight card: election countdown */}
         <FloatingInsightCard className="top-3 left-2 xl:-left-4 civic-float-b">
           <span
-            className="w-2 h-2 rounded-full bg-[#34D399] shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+            className="w-2 h-2 rounded-full animate-pulse"
+            style={{ background: "#3F6E9A" }}
             aria-hidden
           />
-          <span className="text-[12px] font-semibold text-white">
+          <span
+            className="text-[12px] font-semibold"
+            style={{ color: "#1D2430" }}
+          >
             Election in{" "}
-            <span className="text-[#34D399]">12 days</span>
+            <span style={{ color: "#3F6E9A" }}>12 days</span>
           </span>
         </FloatingInsightCard>
 
         {/* Floating insight card: deadline */}
         <FloatingInsightCard className="top-16 right-1 xl:-right-2 civic-float-c">
-          <Clock className="w-3.5 h-3.5 text-[#FBBF24] shrink-0" aria-hidden />
-          <span className="text-[12px] font-semibold text-white">
+          <Clock
+            className="w-3.5 h-3.5 shrink-0"
+            style={{ color: "#D39B38" }}
+            aria-hidden
+          />
+          <span
+            className="text-[12px] font-semibold"
+            style={{ color: "#1D2430" }}
+          >
             Reg. closes{" "}
-            <span className="text-[#FBBF24]">Oct 7</span>
+            <span style={{ color: "#D39B38" }}>Oct 7</span>
           </span>
         </FloatingInsightCard>
 
         {/* Floating insight card: bill alert */}
-        <FloatingInsightCard className="bottom-10 left-2 xl:left-0 civic-float-b" style={{ animationDelay: "1.2s" } as React.CSSProperties}>
+        <FloatingInsightCard
+          className="bottom-10 left-2 xl:left-0 civic-float-b"
+          style={{ animationDelay: "1.2s" } as React.CSSProperties}
+        >
           <span
-            className="w-2 h-2 rounded-full bg-[#818CF8] shadow-[0_0_8px_rgba(129,140,248,0.7)]"
+            className="w-2 h-2 rounded-full"
+            style={{ background: "#3F6E9A", opacity: 0.65 }}
             aria-hidden
           />
-          <span className="text-[12px] font-semibold text-[#D0DDEF]">
+          <span
+            className="text-[12px] font-semibold"
+            style={{ color: "#1D2430" }}
+          >
             New bill may affect{" "}
-            <span className="text-[#818CF8]">transit funding</span>
+            <span style={{ color: "#3F6E9A" }}>transit funding</span>
           </span>
         </FloatingInsightCard>
 

@@ -9,8 +9,26 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-sans: var(
+    --font-civic-sans,
+    ui-sans-serif,
+    system-ui,
+    sans-serif,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial
+  );
+  --font-mono: var(
+    --font-civic-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace
+  );
   --font-heading: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -37,6 +55,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -58,9 +77,12 @@
   --civic-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* MASTER spacing + shadows (use arbitrary values or theme later) */
-  --civic-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  --civic-shadow-md: 0 4px 6px rgb(0 0 0 / 0.1);
-  --civic-shadow-lg: 0 10px 15px rgb(0 0 0 / 0.1);
+  --civic-shadow-sm: 0 1px 2px rgb(29 36 48 / 0.05),
+    0 1px 3px rgb(63 110 154 / 0.07);
+  --civic-shadow-md: 0 4px 14px rgb(29 36 48 / 0.07),
+    0 2px 6px rgb(63 110 154 / 0.06);
+  --civic-shadow-lg: 0 10px 28px rgb(29 36 48 / 0.09),
+    0 4px 12px rgb(63 110 154 / 0.07);
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
@@ -69,74 +91,90 @@
   --space-2xl: 3rem;
   --space-3xl: 4rem;
 
-  /* MASTER palette + shadcn semantic mapping */
-  --background: #f8fafc;
-  --foreground: #1e3a8a;
-  --card: #ffffff;
-  --card-foreground: #1e3a8a;
-  --popover: #ffffff;
-  --popover-foreground: #1e3a8a;
-  --primary: #1e40af;
+  /* CivicLink premium palette + shadcn semantic mapping */
+  --civic-background: #f6f3ed;
+  --civic-surface: #ffffff;
+  --civic-primary: #3f6e9a;
+  --civic-primary-hover: #2f5b84;
+  --civic-headline: #1d2430;
+  --civic-body: #556070;
+  --civic-muted: #7a8594;
+  --civic-accent-gold: #d39b38;
+  --civic-accent-green: #5f8b68;
+  --civic-border: #e8e1d7;
+  --civic-tint-blue: #edf4fa;
+  --civic-tint-gold: #fcf5e8;
+  --civic-tint-green: #f2f7f1;
+  --civic-primary-light: #5582ad;
+
+  --background: var(--civic-background);
+  --foreground: var(--civic-headline);
+  --card: var(--civic-surface);
+  --card-foreground: var(--civic-headline);
+  --popover: var(--civic-surface);
+  --popover-foreground: var(--civic-headline);
+  --primary: var(--civic-primary);
+  --primary-hover: var(--civic-primary-hover);
   --primary-foreground: #ffffff;
-  --secondary: #dbeafe;
-  --secondary-foreground: #1e3a8a;
-  --muted: #f1f5f9;
-  --muted-foreground: #475569;
-  --accent: #f59e0b;
-  /* Dark text on amber (WCAG AA) — Master CTA accent */
-  --accent-foreground: #0f172a;
-  --destructive: #dc2626;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #1e40af;
-  --chart-1: #1e40af;
-  --chart-2: #3b82f6;
-  --chart-3: #f59e0b;
-  --chart-4: #0ea5e9;
-  --chart-5: #64748b;
+  --secondary: var(--civic-tint-blue);
+  --secondary-foreground: var(--civic-headline);
+  --muted: #efe8de;
+  --muted-foreground: var(--civic-muted);
+  --accent: var(--civic-accent-gold);
+  --accent-foreground: var(--civic-headline);
+  --destructive: #c23d32;
+  --border: var(--civic-border);
+  --input: var(--civic-border);
+  --ring: var(--civic-primary);
+  --chart-1: var(--civic-primary);
+  --chart-2: var(--civic-primary-light);
+  --chart-3: var(--civic-accent-gold);
+  --chart-4: var(--civic-accent-green);
+  --chart-5: var(--civic-muted);
   --radius: 0.625rem;
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #1e3a8a;
-  --sidebar-primary: #1e40af;
+  --sidebar: #faf7f2;
+  --sidebar-foreground: var(--civic-headline);
+  --sidebar-primary: var(--civic-primary);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e2e8f0;
-  --sidebar-accent-foreground: #1e3a8a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #1e40af;
+  --sidebar-accent: var(--civic-tint-blue);
+  --sidebar-accent-foreground: var(--civic-primary);
+  --sidebar-border: var(--civic-border);
+  --sidebar-ring: var(--civic-primary);
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
-  --card: #1e293b;
-  --card-foreground: #e2e8f0;
-  --popover: #1e293b;
-  --popover-foreground: #e2e8f0;
-  --primary: #60a5fa;
-  --primary-foreground: #0f172a;
-  --secondary: #1e3a8a;
-  --secondary-foreground: #e2e8f0;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --accent: #fbbf24;
-  --accent-foreground: #0f172a;
-  --destructive: #f87171;
+  --primary-hover: #7aa3c9;
+  --background: #121820;
+  --foreground: #e8eaef;
+  --card: #1a222c;
+  --card-foreground: #e8eaef;
+  --popover: #1a222c;
+  --popover-foreground: #e8eaef;
+  --primary: #5a8ec4;
+  --primary-foreground: #0f1419;
+  --secondary: #243044;
+  --secondary-foreground: #e8eaef;
+  --muted: #252d3a;
+  --muted-foreground: #9aa6b8;
+  --accent: #e4b04d;
+  --accent-foreground: #121820;
+  --destructive: #e86868;
   --border: rgb(255 255 255 / 0.1);
-  --input: rgb(255 255 255 / 0.15);
-  --ring: #60a5fa;
-  --chart-1: #60a5fa;
-  --chart-2: #3b82f6;
-  --chart-3: #fbbf24;
-  --chart-4: #38bdf8;
-  --chart-5: #94a3b8;
-  --sidebar: #1e293b;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #60a5fa;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #e2e8f0;
+  --input: rgb(255 255 255 / 0.14);
+  --ring: #5a8ec4;
+  --chart-1: #5a8ec4;
+  --chart-2: #7aa3c9;
+  --chart-3: #e4b04d;
+  --chart-4: #7aab82;
+  --chart-5: #9aa6b8;
+  --sidebar: #1a222c;
+  --sidebar-foreground: #e8eaef;
+  --sidebar-primary: #5a8ec4;
+  --sidebar-primary-foreground: #0f1419;
+  --sidebar-accent: #243044;
+  --sidebar-accent-foreground: #c9d6e8;
   --sidebar-border: rgb(255 255 255 / 0.1);
-  --sidebar-ring: #60a5fa;
+  --sidebar-ring: #5a8ec4;
 }
 
 @layer base {
