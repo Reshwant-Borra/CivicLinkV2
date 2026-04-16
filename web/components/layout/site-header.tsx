@@ -50,7 +50,7 @@ export function SiteHeader({ locationChip = null }: SiteHeaderProps) {
           </Button>
           <Link
             href="/"
-            className="focus-visible:ring-ring truncate font-mono text-base font-semibold tracking-tight text-foreground no-underline outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="focus-visible:ring-ring truncate font-sans text-base font-semibold tracking-tight text-foreground no-underline outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             CivicLink
           </Link>
